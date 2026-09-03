@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta
     name="description"
-    content="Strona informacyjna aplikacji AutoBoAL współpracującej z Allegro REST API."
+    content="Strona informacyjna aplikacji AutoBoAL i jej modułu AutoPriceCheck, współpracujących z Allegro REST API."
   >
   <title>AutoBoAL — strona informacyjna</title>
 
@@ -87,6 +87,13 @@
       line-height: 1.3;
     }
 
+    h3 {
+      margin: 22px 0 8px;
+      color: #343a40;
+      font-size: 18px;
+      line-height: 1.35;
+    }
+
     p {
       margin: 0 0 14px;
     }
@@ -110,6 +117,14 @@
       border-left: 4px solid #2c7a55;
       background: #f1f7f3;
       color: #24543a;
+    }
+
+    .module-note {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-left: 4px solid #e66a00;
+      background: #fff7f0;
+      color: #643b1c;
     }
 
     .table-wrap {
@@ -205,9 +220,10 @@
       <p class="subtitle">Strona informacyjna aplikacji współpracującej z Allegro REST API</p>
 
       <div class="notice">
-        <strong>AutoBoAL tworzy lokalne kopie zapasowe ofert Allegro.</strong>
+        <strong>AutoBoAL tworzy lokalne kopie zapasowe ofert Allegro i obejmuje moduł AutoPriceCheck.</strong>
         Przywracanie ofert i ustawień sprzedaży jest uruchamiane wyłącznie
         świadomym działaniem użytkownika i wymaga jego potwierdzenia.
+        Moduł AutoPriceCheck działa wyłącznie w trybie odczytu.
       </div>
     </header>
 
@@ -216,8 +232,9 @@
         <h2>O aplikacji</h2>
         <p>
           AutoBoAL jest lokalną aplikacją dla systemu Windows przeznaczoną dla
-          właściciela konta sprzedawcy Allegro. Jej zadaniem jest wykonywanie
-          kopii zapasowych ofert oraz umożliwienie ich późniejszego przywrócenia.
+          właściciela konta sprzedawcy Allegro. Jej podstawowym zadaniem jest
+          wykonywanie kopii zapasowych ofert oraz umożliwienie ich późniejszego
+          przywrócenia.
         </p>
         <p>
           Kopia może obejmować między innymi tytuł i sygnaturę oferty, kategorię,
@@ -225,10 +242,42 @@
           opis, cenę, stan magazynowy, ustawienia dostawy, warunki zwrotów
           i warunki reklamacji.
         </p>
+        <p>
+          Częścią aplikacji jest dodatkowy moduł AutoPriceCheck, uruchamiany
+          jako osobny program na komputerze użytkownika. Moduł kontroluje terminy
+          ponownej weryfikacji cen aktywnych ofert i wyświetla lokalne ostrzeżenia.
+        </p>
       </section>
 
       <section>
-        <h2>Zakres działania</h2>
+        <h2>Składniki aplikacji</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Składnik</th>
+                <th>Przeznaczenie</th>
+                <th>Tryb działania</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>AutoBoAL</strong></td>
+                <td>Tworzenie lokalnych kopii zapasowych oraz przywracanie wybranych ofert.</td>
+                <td>Odczyt danych; zapis tylko podczas przywracania świadomie uruchomionego przez użytkownika.</td>
+              </tr>
+              <tr>
+                <td><strong>AutoPriceCheck</strong></td>
+                <td>Kontrola cyklicznych terminów ponownej weryfikacji cen aktywnych ofert.</td>
+                <td>Wyłącznie odczyt danych konta i własnych ofert.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Zakres działania AutoBoAL</h2>
         <ul>
           <li>odczytywanie listy i szczegółów własnych ofert sprzedawcy,</li>
           <li>pobieranie zdjęć oraz danych potrzebnych do utworzenia lokalnej kopii,</li>
@@ -242,6 +291,30 @@
       </section>
 
       <section>
+        <h2>Moduł AutoPriceCheck</h2>
+        <p>
+          AutoPriceCheck pomaga właścicielowi konta okresowo sprawdzać ceny
+          aktywnych, niesprzedanych ofert. Pobiera listę własnych aktywnych ofert
+          oraz daty ich publikacji, a następnie oblicza terminy kontroli według
+          wybranego cyklu rocznego albo półrocznego.
+        </p>
+        <ul>
+          <li>pobiera wyłącznie aktywne oferty należące do połączonego konta,</li>
+          <li>oblicza kolejne roczne albo półroczne terminy kontroli,</li>
+          <li>po udanym uruchomieniu nadrabia terminy przypadające w dniach, w których aplikacja nie była używana,</li>
+          <li>wyświetla lokalną listę ostrzeżeń wymagających uwagi użytkownika,</li>
+          <li>zapamiętuje obsłużone ostrzeżenia, aby nie powtarzać ich następnego dnia,</li>
+          <li>nie zmienia cen, treści, stanów magazynowych ani statusów ofert.</li>
+        </ul>
+        <div class="module-note">
+          <strong>AutoPriceCheck jest modułem AutoBoAL działającym jako osobny plik wykonywalny.</strong>
+          Korzysta z tej samej rejestracji aplikacji OAuth, ale podczas własnego
+          połączenia prosi wyłącznie o uprawnienia niezbędne do odczytu profilu
+          i własnych ofert.
+        </div>
+      </section>
+
+      <section>
         <h2>Uprawnienia Allegro</h2>
         <p>AutoBoAL wykorzystuje następujące zakresy OAuth:</p>
 
@@ -251,37 +324,59 @@
               <tr>
                 <th>Zakres</th>
                 <th>Przeznaczenie</th>
+                <th>Wykorzystanie przez AutoPriceCheck</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td><code>allegro:api:profile:read</code></td>
                 <td>Rozpoznanie połączonego konta Allegro.</td>
+                <td>Tak</td>
               </tr>
               <tr>
                 <td><code>allegro:api:sale:offers:read</code></td>
                 <td>Odczyt listy i pełnych danych własnych ofert.</td>
+                <td>Tak</td>
               </tr>
               <tr>
                 <td><code>allegro:api:sale:offers:write</code></td>
                 <td>Wgrywanie zdjęć oraz tworzenie i publikowanie ofert podczas przywracania.</td>
+                <td>Nie</td>
               </tr>
               <tr>
                 <td><code>allegro:api:sale:settings:read</code></td>
                 <td>Odczyt przypisanych ustawień sprzedaży potrzebnych do wykonania kopii.</td>
+                <td>Nie</td>
               </tr>
               <tr>
                 <td><code>allegro:api:sale:settings:write</code></td>
                 <td>Odtworzenie brakujących ustawień sprzedaży na koncie docelowym.</td>
+                <td>Nie</td>
               </tr>
             </tbody>
           </table>
         </div>
 
         <p style="margin-top: 16px;">
-          Uprawnienia do zapisu są wykorzystywane wyłącznie podczas operacji
-          przywracania uruchomionej przez użytkownika. Automatyczny harmonogram
-          wykonuje kopie zapasowe i nie wystawia ofert.
+          Uprawnienia do zapisu są wykorzystywane wyłącznie przez główny program
+          AutoBoAL podczas operacji przywracania uruchomionej przez użytkownika.
+          Automatyczny harmonogram wykonuje kopie zapasowe i nie wystawia ofert.
+          AutoPriceCheck nie żąda ani nie wykorzystuje uprawnień do zapisu.
+        </p>
+      </section>
+
+      <section>
+        <h2>Identyfikacja techniczna</h2>
+        <p>
+          AutoBoAL i moduł AutoPriceCheck korzystają ze wspólnej identyfikacji
+          aplikacji w komunikacji z Allegro REST API:
+        </p>
+        <p><strong>User-Agent:</strong> <code>AutoBoAL/2.0.0 (+https://autoboal.github.io/)</code></p>
+        <p><strong>Adres przekierowania OAuth:</strong> <code>http://localhost:8767/callback</code></p>
+        <p>
+          Moduły są uruchamiane lokalnie i mogą posiadać odrębne tokeny OAuth
+          wynikające z oddzielnego procesu połączenia, przy zachowaniu tej samej
+          rejestracji aplikacji AutoBoAL.
         </p>
       </section>
 
@@ -299,13 +394,15 @@
       <section>
         <h2>Dane i prywatność</h2>
         <p>
-          AutoBoAL działa lokalnie na komputerze użytkownika. Kopie ofert,
-          zdjęcia, raporty, historia operacji i ustawienia programu są zapisywane
-          lokalnie. Tokeny OAuth są chronione mechanizmem Windows DPAPI.
+          AutoBoAL i AutoPriceCheck działają lokalnie na komputerze użytkownika.
+          Kopie ofert, zdjęcia, raporty, historia operacji, lokalna baza terminów
+          oraz ustawienia programów są zapisywane lokalnie. Dane uwierzytelniające
+          i tokeny OAuth są chronione mechanizmem Windows DPAPI.
         </p>
         <p>
           Aplikacja komunikuje się bezpośrednio z Allegro REST API. Nie przekazuje
-          kopii ofert do zewnętrznego serwera należącego do twórcy aplikacji.
+          kopii ofert ani danych modułu AutoPriceCheck do zewnętrznego serwera
+          należącego do twórcy aplikacji.
         </p>
         <p>
           Niniejsza strona ma wyłącznie charakter informacyjny. Nie zawiera
@@ -315,8 +412,6 @@
 
       <section class="contact">
         <h2>Kontakt</h2>
-
-        <!-- UZUPEŁNIJ PONIŻSZE DWA POLA PRZED OPUBLIKOWANIEM STRONY. -->
         <p>
           <strong>Właściciel aplikacji:</strong>
           <span class="placeholder">AUTO-NAPRAWA Andrzej Kozaczuk</span>
@@ -329,7 +424,7 @@
     </main>
 
     <footer>
-      <p>Wersja aplikacji: 1.0.1 &nbsp;|&nbsp; Ostatnia aktualizacja: 22 sierpnia 2026 r.</p>
+      <p>Wersja aplikacji: 2.0.0 &nbsp;|&nbsp; Ostatnia aktualizacja: 3 września 2026 r.</p>
       <p>
         AutoBoAL jest niezależną aplikacją i nie jest oficjalnym produktem Allegro.
         Nazwa Allegro oraz związane z nią oznaczenia należą do ich właścicieli.
