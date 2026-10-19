@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta
     name="description"
-    content="Strona informacyjna aplikacji AutoBoAL i jej modułu AutoPriceCheck, współpracujących z Allegro REST API."
+    content="AutoBoAL i moduły AutoPriceCheck oraz AutoKSeF: lokalne kopie ofert Allegro, kontrola terminów weryfikacji cen, faktury KSeF i korekty po zwrotach środków."
   >
-  <title>AutoBoAL — strona informacyjna</title>
+  <title>AutoBoAL — AutoPriceCheck i AutoKSeF</title>
 
   <style>
     * {
@@ -157,6 +157,16 @@
       overflow-wrap: anywhere;
     }
 
+    a {
+      color: #155d94;
+      overflow-wrap: anywhere;
+    }
+
+    a:focus-visible {
+      outline: 2px solid #155d94;
+      outline-offset: 3px;
+    }
+
     .contact p {
       margin-bottom: 8px;
     }
@@ -220,10 +230,12 @@
       <p class="subtitle">Strona informacyjna aplikacji współpracującej z Allegro REST API</p>
 
       <div class="notice">
-        <strong>AutoBoAL tworzy lokalne kopie zapasowe ofert Allegro i obejmuje moduł AutoPriceCheck.</strong>
-        Przywracanie ofert i ustawień sprzedaży jest uruchamiane wyłącznie
-        świadomym działaniem użytkownika i wymaga jego potwierdzenia.
-        Moduł AutoPriceCheck działa wyłącznie w trybie odczytu.
+        <strong>AutoBoAL tworzy lokalne kopie zapasowe ofert Allegro i obejmuje moduły AutoPriceCheck oraz AutoKSeF.</strong>
+        Przywracanie ofert i ustawień sprzedaży jest uruchamiane świadomym
+        działaniem użytkownika i wymaga jego potwierdzenia. AutoPriceCheck
+        działa wyłącznie w trybie odczytu. AutoKSeF wystawia faktury i korekty,
+        wysyła je do KSeF oraz udostępnia dokumenty w zamówieniach Allegro
+        w trybie kontrolowanym albo po włączeniu trybu automatycznego.
       </div>
     </header>
 
@@ -243,9 +255,16 @@
           i warunki reklamacji.
         </p>
         <p>
-          Częścią aplikacji jest dodatkowy moduł AutoPriceCheck, uruchamiany
-          jako osobny program na komputerze użytkownika. Moduł kontroluje terminy
+          Częścią aplikacji jest moduł AutoPriceCheck, który kontroluje terminy
           ponownej weryfikacji cen aktywnych ofert i wyświetla lokalne ostrzeżenia.
+          Moduł AutoKSeF obsługuje natomiast faktury i korekty do zamówień Allegro,
+          ich wysyłkę do Krajowego Systemu e-Faktur (KSeF) oraz udostępnianie
+          plików PDF kupującym w Allegro.
+        </p>
+        <p>
+          Oba moduły są uruchamiane jako osobne programy na komputerze
+          użytkownika. W środowisku produkcyjnym Allegro korzystają ze wspólnej
+          rejestracji aplikacji AutoBoAL, z uprawnieniami odpowiednimi do swoich funkcji.
         </p>
       </section>
 
@@ -255,9 +274,9 @@
           <table>
             <thead>
               <tr>
-                <th>Składnik</th>
-                <th>Przeznaczenie</th>
-                <th>Tryb działania</th>
+                <th scope="col">Składnik</th>
+                <th scope="col">Przeznaczenie</th>
+                <th scope="col">Tryb działania</th>
               </tr>
             </thead>
             <tbody>
@@ -270,6 +289,11 @@
                 <td><strong>AutoPriceCheck</strong></td>
                 <td>Kontrola cyklicznych terminów ponownej weryfikacji cen aktywnych ofert.</td>
                 <td>Wyłącznie odczyt danych konta i własnych ofert.</td>
+              </tr>
+              <tr>
+                <td><strong>AutoKSeF</strong></td>
+                <td>Faktury i korekty do zamówień Allegro, wysyłka do KSeF oraz dodawanie dokumentów PDF do zamówień.</td>
+                <td>Odczyt zamówień i zwrotów płatności; wysyłka dokumentów w trybie kontrolowanym lub po włączeniu automatu.</td>
               </tr>
             </tbody>
           </table>
@@ -314,69 +338,189 @@
         </div>
       </section>
 
+      <section id="autoksef">
+        <h2>Moduł AutoKSeF</h2>
+        <p>
+          AutoKSeF jest lokalnym modułem fakturowania AutoBoAL. Łączy dane
+          zamówień Allegro z wystawianiem faktur oraz korekt, komunikacją
+          z KSeF i udostępnianiem dokumentów kupującemu przy właściwym zamówieniu.
+        </p>
+        <ul>
+          <li>odczytuje zamówienia, żądania faktury, dane nabywcy, pozycje, dostawę i informacje o płatności,</li>
+          <li>obsługuje faktury dla firm oraz faktury bez NIP-u, zgodnie z danymi zamówienia i ustawieniami modułu,</li>
+          <li>obsługuje zakupy opłacone z góry oraz płatność za pobraniem,</li>
+          <li>przygotowuje faktury i korekty w strukturze FA(3), w tym dokumenty w procedurze marży dla towarów używanych oraz dostawę z VAT 23%,</li>
+          <li>wysyła dokumenty XML do wybranego środowiska KSeF, sprawdza ich przyjęcie i pobiera Urzędowe Poświadczenie Odbioru (UPO),</li>
+          <li>tworzy pliki PDF z numerem KSeF i kodem QR po przyjęciu dokumentu przez KSeF,</li>
+          <li>dodaje faktury i korekty w PDF do właściwego zamówienia Allegro, skąd może je pobrać kupujący,</li>
+          <li>zapisuje lokalne archiwum dokumentów, historię operacji i sprawy wymagające sprawdzenia.</li>
+        </ul>
+
+        <h3>Tryb kontrolowany i automatyczny</h3>
+        <p>
+          W trybie <strong>Kontrolowanym</strong> użytkownik sprawdza dane
+          i zatwierdza kolejne operacje wystawienia oraz wysyłki dokumentu.
+          Po świadomym włączeniu trybu <strong>Automatycznego</strong> moduł
+          przetwarza kwalifikujące się zamówienia i zwroty bez osobnego
+          zatwierdzania każdego dokumentu, od wskazanej daty rozpoczęcia obsługi.
+        </p>
+        <p>
+          Automat pracuje w tle, gdy komputer i aplikacja są uruchomione.
+          Może uruchamiać się wraz z systemem Windows, a po przerwie wznawia
+          odczyt danych i rozpoczęte operacje. Braki danych, niespójności
+          i przypadki wymagające decyzji użytkownika trafiają do lokalnej kontroli.
+        </p>
+
+        <h3>Korekty po zwrocie pieniędzy</h3>
+        <p>
+          W trybie automatycznym, przy włączonej obsłudze korekt, dokument
+          powstaje po potwierdzonym zwrocie pieniędzy w Allegro ze statusem
+          <code>SUCCESS</code>. Dotyczy to zarówno zwrotów zleconych przez
+          sprzedawcę, jak i wykonanych automatycznie przez Allegro.
+        </p>
+        <ul>
+          <li>samo zgłoszenie zwrotu towaru lub anulowanie zakupu nie powoduje wystawienia korekty bez zakończonego zwrotu pieniędzy,</li>
+          <li>status oczekujący, zwrot w trakcie realizacji oraz <code>PARTIAL</code> nie uruchamiają wystawienia korekty,</li>
+          <li>zakres korekty wynika z pozycji, ilości i kwot przekazanych przez Allegro dla operacji zwrotu; przy zwrocie kwotowym program nie zgaduje liczby sztuk,</li>
+          <li>obsługiwane są zwroty całkowite i częściowe, wybrane produkty oraz pełny, częściowy albo zerowy zwrot kosztów dostawy,</li>
+          <li>kolejny zwrot do tego samego zamówienia obejmuje wyłącznie kolejne zwracane kwoty, z uwzględnieniem wcześniejszych korekt,</li>
+          <li>automatyczna korekta wymaga faktury pierwotnej wystawionej w AutoKSeF i jednoznacznie powiązanej z zamówieniem; zwrot bez takiej faktury jest pomijany przy wystawianiu korekt,</li>
+          <li>gotowa korekta przechodzi przez wysyłkę do KSeF, pobranie UPO i dodanie PDF-u do zamówienia.</li>
+        </ul>
+        <p>
+          Zwrot części ceny może mieć status <code>SUCCESS</code> i zostać
+          obsłużony automatycznie. Decyduje zakończenie danej operacji finansowej,
+          a nie to, czy zwracana jest cała wartość zamówienia.
+        </p>
+        <div class="module-note">
+          <strong>AutoKSeF odczytuje zwroty płatności, ale nie zleca zwrotów pieniędzy.</strong>
+          Wypłatę zleca sprzedawca lub Allegro. Korekty do faktur wystawionych
+          poza AutoKSeF oraz zwroty pieniędzy wykonane poza Allegro pozostają
+          do ręcznej obsługi.
+        </div>
+      </section>
+
       <section>
         <h2>Uprawnienia Allegro</h2>
-        <p>AutoBoAL wykorzystuje następujące zakresy OAuth:</p>
-
+        <p>
+          Wspólna rejestracja aplikacji AutoBoAL obejmuje poniższe zakresy OAuth.
+          Poszczególne moduły podczas połączenia żądają uprawnień potrzebnych
+          do własnego zakresu działania.
+        </p>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Zakres</th>
-                <th>Przeznaczenie</th>
-                <th>Wykorzystanie przez AutoPriceCheck</th>
+                <th scope="col">Zakres</th>
+                <th scope="col">Przeznaczenie w aplikacji</th>
+                <th scope="col">Składnik korzystający z zakresu</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td><code>allegro:api:profile:read</code></td>
                 <td>Rozpoznanie połączonego konta Allegro.</td>
-                <td>Tak</td>
+                <td>AutoBoAL, AutoPriceCheck</td>
               </tr>
               <tr>
                 <td><code>allegro:api:sale:offers:read</code></td>
-                <td>Odczyt listy i pełnych danych własnych ofert.</td>
-                <td>Tak</td>
+                <td>Odczyt listy i danych własnych ofert na potrzeby kopii oraz kontroli terminów.</td>
+                <td>AutoBoAL, AutoPriceCheck</td>
               </tr>
               <tr>
                 <td><code>allegro:api:sale:offers:write</code></td>
                 <td>Wgrywanie zdjęć oraz tworzenie i publikowanie ofert podczas przywracania.</td>
-                <td>Nie</td>
+                <td>AutoBoAL</td>
               </tr>
               <tr>
                 <td><code>allegro:api:sale:settings:read</code></td>
-                <td>Odczyt przypisanych ustawień sprzedaży potrzebnych do wykonania kopii.</td>
-                <td>Nie</td>
+                <td>Odczyt ustawień sprzedaży potrzebnych do wykonania kopii.</td>
+                <td>AutoBoAL</td>
               </tr>
               <tr>
                 <td><code>allegro:api:sale:settings:write</code></td>
                 <td>Odtworzenie brakujących ustawień sprzedaży na koncie docelowym.</td>
-                <td>Nie</td>
+                <td>AutoBoAL</td>
+              </tr>
+              <tr>
+                <td><code>allegro:api:orders:read</code></td>
+                <td>Odczyt zdarzeń i szczegółów zamówień, danych do faktury oraz informacji o dokumentach przypisanych do zamówienia.</td>
+                <td>AutoKSeF</td>
+              </tr>
+              <tr>
+                <td><code>allegro:api:orders:write</code></td>
+                <td>Dodawanie faktur i korekt w PDF do zamówień Allegro.</td>
+                <td>AutoKSeF</td>
+              </tr>
+              <tr>
+                <td><code>allegro:api:payments:read</code></td>
+                <td>Odczyt statusów i szczegółów zwrotów płatności na potrzeby automatycznych korekt.</td>
+                <td>AutoKSeF</td>
               </tr>
             </tbody>
           </table>
         </div>
-
         <p style="margin-top: 16px;">
-          Uprawnienia do zapisu są wykorzystywane wyłącznie przez główny program
-          AutoBoAL podczas operacji przywracania uruchomionej przez użytkownika.
-          Automatyczny harmonogram wykonuje kopie zapasowe i nie wystawia ofert.
+          Główny program AutoBoAL wykorzystuje zapis ofert i ustawień sprzedaży
+          podczas przywracania uruchomionego przez użytkownika. Jego automatyczny
+          harmonogram wykonuje kopie zapasowe i nie wystawia ofert.
           AutoPriceCheck nie żąda ani nie wykorzystuje uprawnień do zapisu.
+        </p>
+        <p>
+          AutoKSeF korzysta z zapisu zamówień w celu dodawania dokumentów PDF.
+          Nie zmienia ofert ani statusów realizacji zamówień i nie korzysta
+          z uprawnienia do wykonywania zwrotów pieniędzy
+          (<code>allegro:api:payments:write</code>).
+          Po rozszerzeniu zakresów rejestracji użytkownik ponownie łączy konto
+          w AutoKSeF, aby zatwierdzić wymagany dostęp.
         </p>
       </section>
 
       <section>
         <h2>Identyfikacja techniczna</h2>
         <p>
-          AutoBoAL i moduł AutoPriceCheck korzystają ze wspólnej identyfikacji
-          aplikacji w komunikacji z Allegro REST API:
+          AutoBoAL oraz moduły AutoPriceCheck i AutoKSeF korzystają ze wspólnej
+          rejestracji aplikacji w produkcyjnym Allegro REST API.
+          Nazwą aplikacji widoczną podczas udzielania zgody jest AutoBoAL.
         </p>
         <p><strong>User-Agent:</strong> <code>AutoBoAL/2.0.0 (+https://autoboal.github.io/)</code></p>
-        <p><strong>Adres przekierowania OAuth:</strong> <code>http://localhost:8767/callback</code></p>
+        <p><strong>Strona dokumentacji:</strong> <a href="https://autoboal.github.io/">https://autoboal.github.io/</a></p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Składnik</th>
+                <th scope="col">Adres przekierowania OAuth</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>AutoBoAL / AutoPriceCheck</td>
+                <td><code>http://localhost:8767/callback</code></td>
+              </tr>
+              <tr>
+                <td>AutoKSeF — adres domyślny</td>
+                <td><code>http://localhost:8765/callback</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top: 16px;">
+          Adres ustawiony w danym programie musi być zgodny z adresem zapisanym
+          w rejestracji aplikacji Allegro. Dodanie adresu AutoKSeF nie wymaga
+          usuwania adresów ani uprawnień używanych przez pozostałe moduły.
+        </p>
         <p>
-          Moduły są uruchamiane lokalnie i mogą posiadać odrębne tokeny OAuth
-          wynikające z oddzielnego procesu połączenia, przy zachowaniu tej samej
-          rejestracji aplikacji AutoBoAL.
+          Moduły są uruchamiane lokalnie i przechowują odrębne tokeny OAuth
+          uzyskane podczas własnego procesu połączenia, przy zachowaniu tej
+          samej rejestracji aplikacji AutoBoAL. Profile Allegro Sandbox
+          i Produkcja mają oddzielne dane połączenia.
+        </p>
+        <p>
+          Połączenie AutoKSeF z KSeF jest niezależne od OAuth Allegro.
+          Wymaga właściwego NIP-u, certyfikatu i odpowiadającego mu klucza
+          oraz uprawnień w wybranym środowisku KSeF. Profile Test, Demo
+          i Produkcja są rozdzielone.
         </p>
       </section>
 
@@ -392,21 +536,44 @@
       </section>
 
       <section>
+        <h2>Zabezpieczenia przy fakturowaniu</h2>
+        <ul>
+          <li>dokument jest powiązany z konkretnym zamówieniem, kontem Allegro i środowiskiem,</li>
+          <li>przed wystawieniem sprawdzane są dane nabywcy, pozycje, kwoty i zgodność dokumentu ze strukturą FA(3),</li>
+          <li>użytkownik określa tryb działania oraz datę rozpoczęcia automatycznej obsługi zamówień i zwrotów,</li>
+          <li>ponowienia korzystają z zapisanej historii dokumentu i operacji, aby ograniczyć ryzyko wystawienia duplikatu lub ponownego dodania PDF-u,</li>
+          <li>automatyczna korekta wymaga potwierdzonego zwrotu pieniędzy i właściwej faktury pierwotnej,</li>
+          <li>niejednoznaczne dane i konflikty są zatrzymywane do sprawdzenia zamiast uzupełniania brakujących kwot przypuszczeniami,</li>
+          <li>dostępne są lokalne kopie bazy oraz archiwum XML, PDF i UPO.</li>
+        </ul>
+      </section>
+
+      <section>
         <h2>Dane i prywatność</h2>
         <p>
-          AutoBoAL i AutoPriceCheck działają lokalnie na komputerze użytkownika.
-          Kopie ofert, zdjęcia, raporty, historia operacji, lokalna baza terminów
-          oraz ustawienia programów są zapisywane lokalnie. Dane uwierzytelniające
-          i tokeny OAuth są chronione mechanizmem Windows DPAPI.
+          AutoBoAL, AutoPriceCheck i AutoKSeF działają lokalnie na komputerze
+          użytkownika. Kopie ofert, zdjęcia, raporty, historia operacji, baza
+          terminów, ustawienia oraz dane zamówień i dokumenty AutoKSeF są
+          zapisywane lokalnie. Zapisane w programach dane uwierzytelniające,
+          tokeny OAuth i zaimportowane dane dostępowe KSeF są chronione
+          mechanizmem Windows DPAPI.
         </p>
         <p>
-          Aplikacja komunikuje się bezpośrednio z Allegro REST API. Nie przekazuje
-          kopii ofert ani danych modułu AutoPriceCheck do zewnętrznego serwera
-          należącego do twórcy aplikacji.
+          AutoKSeF przetwarza dane potrzebne do wystawienia dokumentów,
+          w szczególności dane nabywcy i jego adres, NIP lub inny identyfikator
+          podany w zamówieniu, pozycje, kwoty, informacje o dostawie, płatności
+          i zwrotach oraz identyfikatory zamówień i dokumentów.
+        </p>
+        <p>
+          Programy komunikują się bezpośrednio z Allegro REST API, a AutoKSeF
+          dodatkowo z API KSeF. Dokumenty XML są przesyłane do KSeF zgodnie
+          z wybranym sposobem obsługi, a pliki PDF są dodawane do właściwych
+          zamówień Allegro. Dane aplikacji nie są przekazywane do zewnętrznego
+          serwera należącego do jej twórcy.
         </p>
         <p>
           Niniejsza strona ma wyłącznie charakter informacyjny. Nie zawiera
-          formularzy, nie używa narzędzi analitycznych i nie zapisuje plików cookie.
+          formularzy ani narzędzi analitycznych i nie ustawia plików cookie.
         </p>
       </section>
 
@@ -418,16 +585,18 @@
         </p>
         <p>
           <strong>Kontakt techniczny:</strong>
-          <span class="placeholder">andrzej-kozaczuk@wp.pl</span>
+          <a href="mailto:andrzej-kozaczuk@wp.pl">andrzej-kozaczuk@wp.pl</a>
         </p>
       </section>
     </main>
 
     <footer>
-      <p>Wersja aplikacji: 2.0.0 &nbsp;|&nbsp; Ostatnia aktualizacja: 3 września 2026 r.</p>
+      <p>AutoBoAL: 2.0.0 &nbsp;|&nbsp; Moduł AutoKSeF: 1.5.0</p>
+      <p>Ostatnia aktualizacja dokumentacji: <time datetime="2026-10-19">19 października 2026 r.</time></p>
       <p>
-        AutoBoAL jest niezależną aplikacją i nie jest oficjalnym produktem Allegro.
-        Nazwa Allegro oraz związane z nią oznaczenia należą do ich właścicieli.
+        AutoBoAL wraz z modułami AutoPriceCheck i AutoKSeF jest niezależnym
+        oprogramowaniem i nie jest oficjalnym produktem Allegro ani Ministerstwa
+        Finansów. Nazwy i oznaczenia należą do ich właścicieli.
       </p>
     </footer>
   </div>
