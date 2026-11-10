@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta
     name="description"
-    content="AutoBoAL i moduły AutoPriceCheck oraz AutoKSeF: lokalne kopie ofert Allegro, kontrola terminów weryfikacji cen, faktury KSeF i korekty po zwrotach środków."
+    content="AutoBoAL i moduły AutoPriceCheck, AutoKSeF oraz AutoMessage: kopie ofert Allegro, kontrola cen, faktury KSeF, korekty i wiadomości do kupujących."
   >
-  <title>AutoBoAL — AutoPriceCheck i AutoKSeF</title>
+  <title>AutoBoAL — AutoPriceCheck, AutoKSeF i AutoMessage</title>
 
   <style>
     * {
@@ -230,12 +230,14 @@
       <p class="subtitle">Strona informacyjna aplikacji współpracującej z Allegro REST API</p>
 
       <div class="notice">
-        <strong>AutoBoAL tworzy lokalne kopie zapasowe ofert Allegro i obejmuje moduły AutoPriceCheck oraz AutoKSeF.</strong>
+        <strong>AutoBoAL tworzy lokalne kopie zapasowe ofert Allegro i obejmuje moduły AutoPriceCheck, AutoKSeF oraz AutoMessage.</strong>
         Przywracanie ofert i ustawień sprzedaży jest uruchamiane świadomym
         działaniem użytkownika i wymaga jego potwierdzenia. AutoPriceCheck
         działa wyłącznie w trybie odczytu. AutoKSeF wystawia faktury i korekty,
         wysyła je do KSeF oraz udostępnia dokumenty w zamówieniach Allegro
         w trybie kontrolowanym albo po włączeniu trybu automatycznego.
+        AutoMessage wysyła wiadomości do kupujących według zapisanych zadań,
+        po świadomym włączeniu wysyłki przez użytkownika.
       </div>
     </header>
 
@@ -259,10 +261,11 @@
           ponownej weryfikacji cen aktywnych ofert i wyświetla lokalne ostrzeżenia.
           Moduł AutoKSeF obsługuje natomiast faktury i korekty do zamówień Allegro,
           ich wysyłkę do Krajowego Systemu e-Faktur (KSeF) oraz udostępnianie
-          plików PDF kupującym w Allegro.
+          plików PDF kupującym w Allegro. AutoMessage obsługuje wiadomości
+          do kupujących po zakupie lub potwierdzonym odbiorze przesyłek.
         </p>
         <p>
-          Oba moduły są uruchamiane jako osobne programy na komputerze
+          Moduły są uruchamiane jako osobne programy na komputerze
           użytkownika. W środowisku produkcyjnym Allegro korzystają ze wspólnej
           rejestracji aplikacji AutoBoAL, z uprawnieniami odpowiednimi do swoich funkcji.
         </p>
@@ -294,6 +297,11 @@
                 <td><strong>AutoKSeF</strong></td>
                 <td>Faktury i korekty do zamówień Allegro, wysyłka do KSeF oraz dodawanie dokumentów PDF do zamówień.</td>
                 <td>Odczyt zamówień i zwrotów płatności; wysyłka dokumentów w trybie kontrolowanym lub po włączeniu automatu.</td>
+              </tr>
+              <tr>
+                <td><strong>AutoMessage</strong></td>
+                <td>Wiadomości do klientów po zakupie lub odbiorze przesyłek, we wskazanym okresie albo stale od utworzenia zadania.</td>
+                <td>Odczyt zamówień i śledzenia przesyłek; wysyłka przez Centrum wiadomości po włączeniu przez użytkownika.</td>
               </tr>
             </tbody>
           </table>
@@ -400,6 +408,44 @@
         </div>
       </section>
 
+      <section id="automessage">
+        <h2>Moduł AutoMessage</h2>
+        <p>
+          AutoMessage jest lokalnym programem dla Windows, korzystającym ze wspólnej
+          rejestracji aplikacji AutoBoAL. Obsługuje Allegro Produkcję i Sandbox,
+          z oddzielnymi połączeniami, zadaniami, kolejką oraz historią dla kont i środowisk.
+        </p>
+        <ul>
+          <li>użytkownik zapisuje treść wiadomości, przedział dat i godzin albo opcję „Zawsze” oraz moment wysłania,</li>
+          <li>zakup uruchamia zadanie bez czekania na płatność, gdy Allegro udostępni identyfikator zamówienia wymagany do wysłania wiadomości,</li>
+          <li>odbiór jest rozpoznawany na podstawie statusu DELIVERED i jego daty w historii przewoźnika; przy wielu przesyłkach wymagane jest potwierdzenie odbioru wszystkich aktualnie przypisanych przesyłek,</li>
+          <li>zakres dotyczy daty zakupu albo odbioru w czasie polskim; „Zawsze” zaczyna działać od utworzenia zadania,</li>
+          <li>w jednym zadaniu wysyłana jest jedna wiadomość do każdego zamówienia; kolejne osobne zamówienie tego samego klienta otrzymuje kolejną wiadomość bez przerwy czasowej,</li>
+          <li>wysyłka wymaga włączenia w aplikacji; użytkownik może ją wstrzymać lub usunąć zadanie po potwierdzeniu,</li>
+          <li>program może działać w zasobniku i uruchamiać się wraz z Windows po zaznaczeniu tej opcji.</li>
+        </ul>
+        <h3>Zaległości i historia wysyłek</h3>
+        <p>
+          Kolejka i wyniki są zapisywane lokalnie przed i po próbie wysłania.
+          Zapisane zaległości nie mają limitu wieku i są wznawiane po uruchomieniu,
+          również po zakończeniu okresu zadania. Odtworzenie zdarzeń, których program
+          wcześniej nie pobrał, zależy od historii dostępnej jeszcze w Allegro.
+          Dziennik zdarzeń zamówień oraz historia śledzenia przesyłek mają ograniczony
+          okres dostępności. Program nie zgaduje daty odbioru przy braku śledzenia.
+        </p>
+        <p>
+          Jeśli odpowiedź po wysłaniu zaginie, AutoMessage próbuje potwierdzić wiadomość
+          w korespondencji Allegro. Niejednoznaczne próby trafiają do sprawdzenia;
+          nie są automatycznie wysyłane ponownie. Ręczne ponowienie wymaga potwierdzenia.
+          Rozpoczętej lub już przyjętej wiadomości nie można cofnąć usunięciem zadania.
+        </p>
+        <div class="module-note">
+          <strong>AutoMessage wysyła wiadomości związane z zamówieniami.</strong>
+          Treść określa sprzedawca. Moduł nie zmienia ofert, statusów zamówień,
+          płatności ani dokumentów wystawianych przez pozostałe aplikacje.
+        </div>
+      </section>
+
       <section>
         <h2>Uprawnienia Allegro</h2>
         <p>
@@ -420,7 +466,7 @@
               <tr>
                 <td><code>allegro:api:profile:read</code></td>
                 <td>Rozpoznanie połączonego konta Allegro.</td>
-                <td>AutoBoAL, AutoPriceCheck</td>
+                <td>AutoBoAL, AutoPriceCheck, AutoMessage</td>
               </tr>
               <tr>
                 <td><code>allegro:api:sale:offers:read</code></td>
@@ -444,8 +490,8 @@
               </tr>
               <tr>
                 <td><code>allegro:api:orders:read</code></td>
-                <td>Odczyt zdarzeń i szczegółów zamówień, danych do faktury oraz informacji o dokumentach przypisanych do zamówienia.</td>
-                <td>AutoKSeF</td>
+                <td>Odczyt zdarzeń, szczegółów zamówień i przypisanych przesyłek, danych do faktury oraz informacji o dokumentach.</td>
+                <td>AutoKSeF, AutoMessage</td>
               </tr>
               <tr>
                 <td><code>allegro:api:orders:write</code></td>
@@ -456,6 +502,11 @@
                 <td><code>allegro:api:payments:read</code></td>
                 <td>Odczyt statusów i szczegółów zwrotów płatności na potrzeby automatycznych korekt.</td>
                 <td>AutoKSeF</td>
+              </tr>
+              <tr>
+                <td><code>allegro:api:messaging</code></td>
+                <td>Wysyłanie wiadomości związanych z zamówieniami oraz odczyt ich statusów i korespondencji w celu potwierdzenia wysyłki.</td>
+                <td>AutoMessage</td>
               </tr>
             </tbody>
           </table>
@@ -472,18 +523,21 @@
           z uprawnienia do wykonywania zwrotów pieniędzy
           (<code>allegro:api:payments:write</code>).
           Po rozszerzeniu zakresów rejestracji użytkownik ponownie łączy konto
-          w AutoKSeF, aby zatwierdzić wymagany dostęp.
+          w odpowiednim module, aby zatwierdzić wymagany dostęp.
+          Dla AutoMessage wymagane są: odczyt profilu, odczyt zamówień i Centrum wiadomości.
+          Rozszerzenie wspólnego klucza nie wymaga usuwania dotychczasowych uprawnień.
         </p>
       </section>
 
       <section>
         <h2>Identyfikacja techniczna</h2>
         <p>
-          AutoBoAL oraz moduły AutoPriceCheck i AutoKSeF korzystają ze wspólnej
+          AutoBoAL oraz moduły AutoPriceCheck, AutoKSeF i AutoMessage korzystają ze wspólnej
           rejestracji aplikacji w produkcyjnym Allegro REST API.
           Nazwą aplikacji widoczną podczas udzielania zgody jest AutoBoAL.
         </p>
         <p><strong>User-Agent:</strong> <code>AutoBoAL/2.0.0 (+https://autoboal.github.io/)</code></p>
+        <p><strong>User-Agent AutoMessage:</strong> <code>AutoMessage/1.0.1</code></p>
         <p><strong>Strona dokumentacji:</strong> <a href="https://autoboal.github.io/">https://autoboal.github.io/</a></p>
         <div class="table-wrap">
           <table>
@@ -495,7 +549,7 @@
             </thead>
             <tbody>
               <tr>
-                <td>AutoBoAL / AutoPriceCheck</td>
+                <td>AutoBoAL / AutoPriceCheck / AutoMessage (domyślnie)</td>
                 <td><code>http://localhost:8767/callback</code></td>
               </tr>
               <tr>
@@ -509,6 +563,9 @@
           Adres ustawiony w danym programie musi być zgodny z adresem zapisanym
           w rejestracji aplikacji Allegro. Dodanie adresu AutoKSeF nie wymaga
           usuwania adresów ani uprawnień używanych przez pozostałe moduły.
+          AutoMessage domyślnie używa istniejącego adresu AutoBoAL. Na tym samym
+          porcie nie należy prowadzić jednocześnie logowania w dwóch programach.
+          Obsługiwany jest również Device Flow, jeśli tak zarejestrowano klucz.
         </p>
         <p>
           Moduły są uruchamiane lokalnie i przechowują odrębne tokeny OAuth
@@ -551,7 +608,7 @@
       <section>
         <h2>Dane i prywatność</h2>
         <p>
-          AutoBoAL, AutoPriceCheck i AutoKSeF działają lokalnie na komputerze
+          AutoBoAL, AutoPriceCheck, AutoKSeF i AutoMessage działają lokalnie na komputerze
           użytkownika. Kopie ofert, zdjęcia, raporty, historia operacji, baza
           terminów, ustawienia oraz dane zamówień i dokumenty AutoKSeF są
           zapisywane lokalnie. Zapisane w programach dane uwierzytelniające,
@@ -563,6 +620,14 @@
           w szczególności dane nabywcy i jego adres, NIP lub inny identyfikator
           podany w zamówieniu, pozycje, kwoty, informacje o dostawie, płatności
           i zwrotach oraz identyfikatory zamówień i dokumentów.
+        </p>
+        <p>
+          AutoMessage zapisuje identyfikatory i loginy klientów, identyfikatory zamówień,
+          daty zakupów i odbiorów, numery przesyłek, treści własnych wiadomości oraz ich
+          statusy. Nie utrwala adresów dostawy ani danych fakturowych z odpowiedzi API.
+          Historia korespondencji jest odczytywana przy rozstrzyganiu niepewnej wysyłki;
+          nie powstaje lokalna kopia całej skrzynki. Baza zadań i historii nie jest szyfrowana;
+          szyfrowanie Windows DPAPI obejmuje klucze i tokeny połączenia.
         </p>
         <p>
           Programy komunikują się bezpośrednio z Allegro REST API, a AutoKSeF
@@ -591,10 +656,10 @@
     </main>
 
     <footer>
-      <p>AutoBoAL: 2.0.0 &nbsp;|&nbsp; Moduł AutoKSeF: 1.5.0</p>
-      <p>Ostatnia aktualizacja dokumentacji: <time datetime="2026-10-19">19 października 2026 r.</time></p>
+      <p>AutoBoAL: 2.0.0 &nbsp;|&nbsp; Moduł AutoKSeF: 1.5.0 &nbsp;|&nbsp; Moduł AutoMessage: 1.0.1</p>
+      <p>Ostatnia aktualizacja dokumentacji: <time datetime="2026-11-10">10 listopada 2026 r.</time></p>
       <p>
-        AutoBoAL wraz z modułami AutoPriceCheck i AutoKSeF jest niezależnym
+        AutoBoAL wraz z modułami AutoPriceCheck, AutoKSeF i AutoMessage jest niezależnym
         oprogramowaniem i nie jest oficjalnym produktem Allegro ani Ministerstwa
         Finansów. Nazwy i oznaczenia należą do ich właścicieli.
       </p>
